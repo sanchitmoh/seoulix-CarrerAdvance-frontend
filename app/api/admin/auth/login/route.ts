@@ -15,14 +15,29 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(body),
     })
 
-    const data = await response.json()
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type')
+    const isJson = contentType && contentType.includes('application/json')
     
-    if (response.ok) {
-      return NextResponse.json(data)
+    if (isJson) {
+      const data = await response.json()
+      
+      if (response.ok) {
+        return NextResponse.json(data)
+      } else {
+        return NextResponse.json(
+          { success: false, message: data.message || 'Login failed' },
+          { status: response.status }
+        )
+      }
     } else {
+      // Handle non-JSON responses (like HTML error pages)
+      const text = await response.text()
+      console.error('Non-JSON response from backend:', text.substring(0, 200))
+      
       return NextResponse.json(
-        { success: false, message: data.message || 'Login failed' },
-        { status: response.status }
+        { success: false, message: 'Backend returned invalid response format' },
+        { status: 500 }
       )
     }
   } catch (error) {
