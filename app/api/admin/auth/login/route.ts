@@ -33,10 +33,24 @@ export async function POST(request: NextRequest) {
     } else {
       // Handle non-JSON responses (like HTML error pages)
       const text = await response.text()
-      console.error('Non-JSON response from backend:', text.substring(0, 200))
+      console.error('Non-JSON response from backend:', {
+        status: response.status,
+        statusText: response.statusText,
+        contentType: contentType,
+        responseText: text.substring(0, 500),
+        url: response.url
+      })
       
       return NextResponse.json(
-        { success: false, message: 'Backend returned invalid response format' },
+        { 
+          success: false, 
+          message: 'Backend returned invalid response format',
+          debug: {
+            status: response.status,
+            contentType: contentType,
+            responsePreview: text.substring(0, 100)
+          }
+        },
         { status: 500 }
       )
     }
